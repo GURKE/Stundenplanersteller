@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<StundenAufbau xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Stunden>
+    <Stunde>
+      <Anfangszeit>7:45</Anfangszeit>
+      <Endzeit>8:30</Endzeit>
+    </Stunde>
+    <Stunde>
+      <Anfangszeit>8:35</Anfangszeit>
+      <Endzeit>9:20</Endzeit>
+    </Stunde>
+    <Stunde>
+      <Anfangszeit>9:35</Anfangszeit>
+      <Endzeit>10:20</Endzeit>
+    </Stunde>
+    <Stunde>
+      <Anfangszeit>10:25</Anfangszeit>
+      <Endzeit>11:10</Endzeit>
+    </Stunde>
+    <Stunde>
+      <Anfangszeit>11:25</Anfangszeit>
+      <Endzeit>12:10</Endzeit>
+    </Stunde>
+    <Stunde>
+      <Anfangszeit>12:15</Anfangszeit>
+      <Endzeit>13:00</Endzeit>
+    </Stunde>
+    <Stunde>
+      <Anfangszeit>13:10</Anfangszeit>
+      <Endzeit>13:55</Endzeit>
+    </Stunde>
+    <Stunde>
+      <Anfangszeit>13:55</Anfangszeit>
+      <Endzeit>14:40</Endzeit>
+    </Stunde>
+    <Stunde>
+      <Anfangszeit>14:40</Anfangszeit>
+      <Endzeit>15:25</Endzeit>
+    </Stunde>
+  </Stunden>
+</StundenAufbau>
