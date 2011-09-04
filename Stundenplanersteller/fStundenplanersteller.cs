@@ -18,16 +18,14 @@ namespace WindowsFormsApplication1
         int StundeBearbeitung = 0;
         int YMousePos = 0;
         int XMousePos = 0;
-        //string MomStuInBea = "1010";
         Point pMomStuInBea;
-        //List<Fach> lflFachListe = new List<Fach>();
-        fStart.StundenAufbau SAStundenAufbau = new fStart.StundenAufbau();
-        //List<Stundenplan> lspStundenPlan = new List<Stundenplan>();
-        List<LehrerFaecher> llfLehrerFaecher = new List<LehrerFaecher>();
-        Dictionary<Point, Fach> dStundenplan = new Dictionary<Point,Fach>();
-        Dictionary<string, Fach> dFaecher = new Dictionary<string, Fach>(); 
-        List<string> lsRaeume = new List<string>();
-        string PfadSchule;
+        fStart.StundenAufbau SAStundenAufbau = new fStart.StundenAufbau(); //Von wann bis wann die Stunden gehen
+        List<LehrerFaecher> llfLehrerFaecher = new List<LehrerFaecher>(); //Welche Lehrer welche Faecher geben
+        Dictionary<Point, Fach> dStundenplan = new Dictionary<Point,Fach>(); //Wann welche Stunde ist
+        Dictionary<string, Fach> dFaecher = new Dictionary<string, Fach>(); //Eine Liste aller Faecher
+        List<string> lsRaeume = new List<string>(); //Eine Liste aller Raeume
+        Dictionary<Point, Stunde> dStunden = new Dictionary<Point, Stunde>(); //Die Controls
+
         string Speicherpfad = "";
 
         public fStundenplanersteller(DataExchange data, Boolean bStundenplanLaden)
@@ -40,7 +38,6 @@ namespace WindowsFormsApplication1
             if (data != null && data.Stundenaufbau != null)
             {
                 Speicher(data.Stundenaufbau, data.Schule);
-                PfadSchule = data.Schule;
             }
         }
 
@@ -81,6 +78,8 @@ namespace WindowsFormsApplication1
                 this.Lehrer = Lehrer;
                 this.Farbe = Farbe;
             }
+
+            public Fach() { }
         }
 
         public class Stundenplan
@@ -96,15 +95,50 @@ namespace WindowsFormsApplication1
         {
             public string Name;
             public List<string> Faecher = new List<string>();
+
+            public LehrerFaecher(string Name, string Faecher)
+            {
+                this.Name = Name;
+                this.Faecher.Add(Faecher);
+            }
+
+            public LehrerFaecher() {}
+        }
+
+        public class Speicherdatei2
+        {
+            public Dictionary<Point, Fach> dStundenplan = new Dictionary<Point, Fach>();
+            public Dictionary<string, Fach> dFaecher = new Dictionary<string, Fach>();
+            public List<string> lsRaeume = new List<string>();
+            public fStart.StundenAufbau Stundenaufbau = new fStart.StundenAufbau();
+            public List<LehrerFaecher> lLehrerFaecher = new List<LehrerFaecher>();
+            public int AnzTage;
         }
 
         public class Speicherdatei
         {
+            public Point[] pdStundenplan;
+            public Fach[] fdStundenplan;
+            public string[] sdFaecher;
+            public Fach[] fdFaecher;
+            public List<string> lsRaeume = new List<string>();
             public fStart.StundenAufbau Stundenaufbau = new fStart.StundenAufbau();
-            public List<Stundenplan> Fachliste = new List<Stundenplan>();
             public List<LehrerFaecher> lLehrerFaecher = new List<LehrerFaecher>();
-            public string PfadSchule = "";
             public int AnzTage;
+        }
+
+        class Stunde
+        {
+            public Label lFach;
+            public Label lRaum;
+            public Label lLehrer;
+            
+            public Stunde(Label lFach, Label lRaum, Label lLehrer)
+            {
+                this.lFach = lFach;
+                this.lRaum = lRaum;
+                this.lLehrer = lLehrer;
+            }
         }
 
         public void Speicher(fStart.StundenAufbau Stundenaufbau, string Schule)
@@ -114,13 +148,13 @@ namespace WindowsFormsApplication1
             for (int i = 0; i < SAStundenAufbau.Stunden.Count(); i++)
             {
                 lStunde[i] = new Label();
-                lStunde[i].Location = new Point(12, 59 + i * 41);
+                lStunde[i].Location = new Point(12, 34 + i * 41);
                 lStunde[i].AutoSize = false;
                 lStunde[i].Size = new Size(72, 42);
                 lStunde[i].Text = i + 1 + ". Stunde\n" + SAStundenAufbau.Stunden[i].Anfangszeit + " - " + SAStundenAufbau.Stunden[i].Endzeit;
                 lStunde[i].BorderStyle = BorderStyle.FixedSingle;
                 lStunde[i].Name = "lStunde" + i;
-                Controls.Add(lStunde[i]);
+                pStundenplan.Controls.Add(lStunde[i]);
             }
 
             //Die Tagesnamen (Montag, Dienstag, etc) werden geladen
@@ -150,57 +184,57 @@ namespace WindowsFormsApplication1
             for (int i = 0; i < Tagesnamen.Count(); i++)
             {
                 lTag[i] = new Label();
-                lTag[i].Location = new Point(83 + i * 120, 28);
+                lTag[i].Location = new Point(83 + i * 120, 3);
                 lTag[i].AutoSize = false;
                 lTag[i].Size = new Size(121, 32);//72, 28);
                 lTag[i].Text = Tagesnamen[i];
                 lTag[i].BorderStyle = BorderStyle.FixedSingle;
                 lTag[i].Name = "lTag" + i;
-                Controls.Add(lTag[i]);
+                pStundenplan.Controls.Add(lTag[i]);
             }
             AnzTage = Tagesnamen.Count();
 
-            if (Schule != "") //Überpüfen ob eine bestimme Schule geladen wurde
-            {
-                FileStream fist = new FileStream(Schule, FileMode.Open);
-                StreamReader stre = new StreamReader(fist);
-                string[] Datei = stre.ReadToEnd().Split(','); //Fächer, Räume, Lehrer
-                fist.Dispose();
-                fist.Close();
-                stre.Dispose();
-                stre.Close();
+            //if (Schule != "") //Überpüfen ob eine bestimme Schule geladen wurde
+            //{
+            //    FileStream fist = new FileStream(Schule, FileMode.Open);
+            //    StreamReader stre = new StreamReader(fist);
+            //    string[] Datei = stre.ReadToEnd().Split(','); //Fächer, Räume, Lehrer
+            //    fist.Dispose();
+            //    fist.Close();
+            //    stre.Dispose();
+            //    stre.Close();
 
-                string[] Fach = Datei[0].Split(':');
-                foreach (String s in Fach)
-                {
-                    string[] aFach = s.Split('#'); //Fach#Standardlehrer#Standardraum#Standardarbe
-                    Stundenplan fl = new Stundenplan();
-                    cbFach.Items.Add(aFach[0]); //Hinzufügen der Fächer in der Auswahlliste, wenn man eine Stunde bearbeiten möchte
-                    fl.Fach = aFach[0];
-                    fl.Lehrer = aFach[1];
-                    fl.Raum = aFach[2];
-                    fl.Farbe = Color.FromName(aFach[3]);
-                    lspStundenPlan.Add(fl);
-                }
+            //    string[] Fach = Datei[0].Split(':');
+            //    foreach (String s in Fach)
+            //    {
+            //        string[] aFach = s.Split('#'); //Fach#Standardlehrer#Standardraum#Standardfarbe
+            //        Stundenplan fl = new Stundenplan();
+            //        cbFach.Items.Add(aFach[0]); //Hinzufügen der Fächer in der Auswahlliste, wenn man eine Stunde bearbeiten möchte
+            //        fl.Fach = aFach[0];
+            //        fl.Lehrer = aFach[1];
+            //        fl.Raum = aFach[2];
+            //        fl.Farbe = Color.FromName(aFach[3]);
+            //        lspStundenPlan.Add(fl);
+            //    }
 
-                string[] Raum = Datei[1].Split(':');
-                foreach (String s in Raum)
-                {
-                    lsRaeume.Add(s);
-                    cbRaum.Items.Add(s); //Hinzufügen der Räume in der Auswahlliste, wenn man eine Stunde bearbeiten möchte
-                }
+            //    string[] Raum = Datei[1].Split(':');
+            //    foreach (String s in Raum)
+            //    {
+            //        lsRaeume.Add(s);
+            //        cbRaum.Items.Add(s); //Hinzufügen der Räume in der Auswahlliste, wenn man eine Stunde bearbeiten möchte
+            //    }
 
-                string[] Lehrer = Datei[2].Split(':'); //Lehrer#Fach#Fach#Fach:Lehrer#Fach#Fach...
-                foreach (String s in Lehrer)
-                {
-                    string[] DerLehrer = s.Split('#');
-                    //cbLehrer.Items.Add(DerLehrer[0]);
-                    LehrerFaecher lf = new LehrerFaecher();
-                    lf.Name = DerLehrer[0];
-                    for (int i = 1; i < DerLehrer.Count(); i++)
-                        lf.Faecher.Add(DerLehrer[i]);
-                }
-            }
+            //    string[] Lehrer = Datei[2].Split(':'); //Lehrer#Fach#Fach#Fach:Lehrer#Fach#Fach...
+            //    foreach (String s in Lehrer)
+            //    {
+            //        string[] DerLehrer = s.Split('#');
+            //        //cbLehrer.Items.Add(DerLehrer[0]);
+            //        LehrerFaecher lf = new LehrerFaecher();
+            //        lf.Name = DerLehrer[0];
+            //        for (int i = 1; i < DerLehrer.Count(); i++)
+            //            lf.Faecher.Add(DerLehrer[i]);
+            //    }
+            //}
         }
 
         private void fStundenplanersteller_FormClosed(object sender, FormClosedEventArgs e)
@@ -210,12 +244,12 @@ namespace WindowsFormsApplication1
 
         private void fStundenplanersteller_DoubleClick(object sender, EventArgs e)
         {
-            if ((XMousePos > 83) && (XMousePos < 83 + AnzTage * 121) && (YMousePos > 59) && (YMousePos < 59 + SAStundenAufbau.Stunden.Count() * 42) && (StundeBearbeitung == 0)) //Überpüfen ob sich die Maus im Fenster befindet und ob eine Stunde momentan bearbeitet wird
+            if ((XMousePos > 83) && (XMousePos < 83 + AnzTage * 121) && (YMousePos > 34) && (YMousePos < 34 + SAStundenAufbau.Stunden.Count() * 42) && (StundeBearbeitung == 0)) //Überpüfen ob sich die Maus im Fenster befindet und ob eine Stunde momentan bearbeitet wird
             {
                 pStundeÄndern.Location = new Point(Convert.ToInt16(Math.Round(Convert.ToDecimal((XMousePos - 83) / 120)) * 120 + 83), Convert.ToInt16(Math.Round(Convert.ToDecimal((YMousePos - 59) / 41)) * 41 + 59));
                 pStundeÄndern.Visible = true;
                 StundeBearbeitung = 1;
-                pMomStuInBea = new Point((XMousePos - 83) / 120, (YMousePos - 49) / 41);
+                pMomStuInBea = new Point((XMousePos - 83) / 120, (YMousePos - 24) / 41);
                 //MomStuInBea = Convert.ToString(Math.Round(Convert.ToDecimal((XMousePos - 83) / 120)) + 10) + Convert.ToString(Math.Round(Convert.ToDecimal((YMousePos - 49) / 41)) + 10);
             }
             else //eine gerade erstellte Stunde soll abgespeichert werden
@@ -226,10 +260,34 @@ namespace WindowsFormsApplication1
                     StundeBearbeitung = 0;
                     return;
                 }
+                
+                Fach f = new Fach(cbFach.Text, cbRaum.Text, cbLehrer.Text, SystemColors.Control);
 
-                Fach f = new Fach(cbFach.Text, cbRaum.Text, cbLehrer.Text, dFaecher[cbFach.Text].Farbe);
-                Color MomFarbe = GetColorByName(cbFach.Text);
+                if (dFaecher.ContainsKey(f.Fachname))
+                {
+                    f.Farbe = dFaecher[f.Fachname].Farbe;
+                    dFaecher[f.Fachname] = f;
+                }
+                else
+                {
+                    dFaecher.Add(f.Fachname, f);
+                    cbFach.Items.Add(f.Fachname);
+                    if (!cbLehrer.Items.Contains(cbLehrer.Text))
+                    {
+                        llfLehrerFaecher.Add(new LehrerFaecher(cbLehrer.Text, cbFach.Text));
+                        cbLehrer.Items.Add(cbLehrer.Text);
+                    }
+                    if (!cbRaum.Items.Contains(cbRaum.Text))
+                    {
+                        lsRaeume.Add(cbRaum.Text);
+                        cbRaum.Items.Add(cbRaum.Text);
+                    }
+                }
+                
 
+                if (dStundenplan.ContainsKey(pMomStuInBea))
+                    dStundenplan[pMomStuInBea] = f;
+                
                 Label lFach = new Label();
                 lFach.Text = f.Fachname;
                 lFach.Location = new Point(pStundeÄndern.Location.X, pStundeÄndern.Location.Y);
@@ -239,9 +297,8 @@ namespace WindowsFormsApplication1
                 lFach.MouseMove += new MouseEventHandler(lFach_MouseMove);
                 lFach.BorderStyle = BorderStyle.FixedSingle;
                 lFach.BackColor = f.Farbe;
-                lFach.Name = "lFach" + pMomStuInBea.X + 10 + pMomStuInBea.Y + 10;
-                //LabelFächer.Add("lFach" + MomStuInBea);
-                Controls.Add(lFach);
+                lFach.Name = "lFach" + (pMomStuInBea.X + 10).ToString() + (pMomStuInBea.Y + 10).ToString();
+                pStundenplan.Controls.Add(lFach);
 
                 Label lRaum = new Label();
                 lRaum.Text = f.Raum;
@@ -251,8 +308,8 @@ namespace WindowsFormsApplication1
                 lRaum.Click += new EventHandler(lFach_Click);
                 lRaum.BorderStyle = BorderStyle.FixedSingle;
                 lRaum.BackColor = f.Farbe;
-                lRaum.Name = "lRaum" + pMomStuInBea.X + 10 + pMomStuInBea.Y + 10;
-                Controls.Add(lRaum);
+                lRaum.Name = "lRaum" + (pMomStuInBea.X + 10).ToString() + (pMomStuInBea.Y + 10).ToString();
+                pStundenplan.Controls.Add(lRaum);
 
                 Label lLehrer = new Label();
                 lLehrer.Text = f.Lehrer;
@@ -262,18 +319,11 @@ namespace WindowsFormsApplication1
                 lLehrer.Click += new EventHandler(lFach_Click);
                 lLehrer.BorderStyle = BorderStyle.FixedSingle;
                 lLehrer.BackColor = f.Farbe;
-                lLehrer.Name = "lLehrer" + pMomStuInBea.X + 10 + pMomStuInBea.Y + 10;
-                Controls.Add(lLehrer);
+                lLehrer.Name = "lLehrer" + (pMomStuInBea.X + 10).ToString() + (pMomStuInBea.Y + 10).ToString();
+                pStundenplan.Controls.Add(lLehrer);
 
+                dStunden.Add(pMomStuInBea, new Stunde(lFach, lRaum, lLehrer));
 
-                if (dFaecher.ContainsKey(f.Fachname))
-                    dFaecher[f.Fachname] = f;
-                else
-                    dFaecher.Add(f.Fachname, f);
-                
-                if (dStundenplan.ContainsKey(pMomStuInBea))
-                    dStundenplan[pMomStuInBea] = f;
-                
                 cbFach.Text = "";
                 cbLehrer.Text = "";
                 cbRaum.Text = "";
@@ -304,13 +354,13 @@ namespace WindowsFormsApplication1
 
         private void bLöschen_Click(object sender, EventArgs e)
         {
-            foreach (Control c in Controls)
+            foreach (Control c in pStundenplan.Controls)
             {
-                if (c.Name == "lFach" + MomStuInBea)
+                if (c.Name == "lFach" + (pMomStuInBea.X + 10).ToString() + (pMomStuInBea.Y + 10).ToString())
                     c.Visible = false;
-                if (c.Name == "lRaum" + MomStuInBea)
+                if (c.Name == "lRaum" + (pMomStuInBea.X + 10).ToString() + (pMomStuInBea.Y + 10).ToString())
                     c.Visible = false;
-                if (c.Name == "lLehrer" + MomStuInBea)
+                if (c.Name == "lLehrer" + (pMomStuInBea.X + 10).ToString() + (pMomStuInBea.Y + 10).ToString())
                     c.Visible = false;
             }
 
@@ -321,24 +371,21 @@ namespace WindowsFormsApplication1
         private void cbFach_SelectedIndexChanged(object sender, EventArgs e)
         {
             cbLehrer.Items.Clear();
+
             foreach (LehrerFaecher lf in llfLehrerFaecher)
                 foreach (string s in lf.Faecher)
                     if (s == cbFach.Text)
                         cbLehrer.Items.Add(lf.Name);
 
-            foreach (Stundenplan fl in lspStundenPlan)
-                if (fl.Fach == cbFach.Text)
-                {
-                    cbLehrer.Text = fl.Lehrer;
-                    cbRaum.Text = fl.Raum;
-                }
+            cbLehrer.Text = dFaecher[cbFach.Text].Lehrer;
+            cbRaum.Text = dFaecher[cbFach.Text].Raum;
 
             cbLehrer.Items.Add("Alle Lehrer anzeigen");
         }
 
         private void einstellungenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            fOptionen form = new fOptionen(PfadSchule);
+            fOptionen form = new fOptionen("");
             form.Show();
         }
     
@@ -348,22 +395,14 @@ namespace WindowsFormsApplication1
             form.ShowDialog();
             if (form.DialogResult == DialogResult.OK)
             {
-                lflFachListe = form.GetFachListe();
+                dFaecher = form.GetFachListe();
 
-                foreach (Control c in Controls)
-                    if (c.Name.Substring(0, "lFach".Count()) == "lFach")
-                        foreach (Stundenplan fl in lspStundenPlan)
-                            if (fl.Fach == c.Text)
-                            {
-                                c.BackColor = fl.Farbe;
-                                foreach (Control cc in Controls)
-                                    try
-                                    {
-                                        if (cc.Name.Substring("lRaum".Count()) == c.Name.Substring("lFach".Count()) || cc.Name.Substring("lLehrer".Count()) == c.Name.Substring("lFach".Count()))
-                                            cc.BackColor = fl.Farbe;
-                                    }
-                                    catch { }
-                            }
+                foreach (Stunde s in dStunden.Values)
+                {
+                    s.lFach.BackColor = dFaecher[s.lFach.Text].Farbe;
+                    s.lLehrer.BackColor = dFaecher[s.lFach.Text].Farbe;
+                    s.lRaum.BackColor = dFaecher[s.lFach.Text].Farbe;
+                }
             }
         }
 
@@ -373,12 +412,23 @@ namespace WindowsFormsApplication1
                 speichernUnterToolStripMenuItem_Click(null, null);
             else
             {
+                //Speicherdatei SD = new Speicherdatei();
+                //SD.lLehrerFaecher = llfLehrerFaecher;
+                //SD.Stundenaufbau = SAStundenAufbau;
+                //SD.AnzTage = AnzTage;
+                //SD.dFaecher = dFaecher;
+                //SD.dStundenplan = dStundenplan;
+                //SD.lsRaeume = lsRaeume;
+
                 Speicherdatei SD = new Speicherdatei();
-                SD.Fachliste = lspStundenPlan;
                 SD.lLehrerFaecher = llfLehrerFaecher;
                 SD.Stundenaufbau = SAStundenAufbau;
                 SD.AnzTage = AnzTage;
-                SD.PfadSchule = PfadSchule;
+                SD.lsRaeume = lsRaeume;
+                SD.sdFaecher = dFaecher.Keys.ToArray();
+                SD.fdFaecher = dFaecher.Values.ToArray();
+                SD.pdStundenplan = dStundenplan.Keys.ToArray();
+                SD.fdStundenplan = dStundenplan.Values.ToArray();
 
                 XmlSerializer ser = new XmlSerializer(typeof(Speicherdatei));
                 TextWriter tw = new StreamWriter(@Speicherpfad);
@@ -410,21 +460,29 @@ namespace WindowsFormsApplication1
                     StreamReader sr = new StreamReader(@ofd.FileName);
                     Speicherdatei SD = (Speicherdatei)ser.Deserialize(sr);
 
-                    foreach (Control c in Controls)
-                        if (c.Name != pStundeÄndern.Name || c.Name != menuStrip1.Name)
-                            Controls.Remove(c);
+                    pStundenplan.Controls.Clear();
 
                     AnzTage = SD.AnzTage;
-                    List<Stundenplan> lfl = SD.Fachliste;
+                    dFaecher.Clear();
+                    for (int i = 0; i < SD.sdFaecher.Count(); i++)
+                        dFaecher.Add(SD.sdFaecher[i], SD.fdFaecher[i]);
+                    
+                    dStundenplan.Clear();
+                    for (int i = 0; i < SD.pdStundenplan.Count(); i++)
+                        dStundenplan.Add(SD.pdStundenplan[i], SD.fdStundenplan[i]);
+                    
+                    lsRaeume = SD.lsRaeume;
+                    SAStundenAufbau = SD.Stundenaufbau;
                     llfLehrerFaecher = SD.lLehrerFaecher;
-                    Speicher(SD.Stundenaufbau, SD.PfadSchule);
-                    foreach (Stundenplan fefl in lfl)
+                    Speicher(SD.Stundenaufbau, "");
+                    
+                    foreach (KeyValuePair<Point, Fach> KVP in dStundenplan)
                     {
                         StundeBearbeitung = 1;
-                        MomStuInBea = fefl.MomStuInBea;
-                        cbFach.Text = fefl.Fach;
-                        cbRaum.Text = fefl.Raum;
-                        cbLehrer.Text = fefl.Lehrer;
+                        pMomStuInBea = KVP.Key;
+                        cbFach.Text = KVP.Value.Fachname;
+                        cbRaum.Text = KVP.Value.Raum;
+                        cbLehrer.Text = KVP.Value.Lehrer;
                         fStundenplanersteller_DoubleClick(null, null);
                     }
                 }
@@ -438,6 +496,16 @@ namespace WindowsFormsApplication1
         private void testButtonToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void pStundenplan_DoubleClick(object sender, EventArgs e)
+        {
+            fStundenplanersteller_DoubleClick(null, null);
+        }
+
+        private void pStundenplan_MouseMove(object sender, MouseEventArgs e)
+        {
+            fStundenplanersteller_MouseMove(null, e);
         }
     }
 }
