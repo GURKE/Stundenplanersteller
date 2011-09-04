@@ -44,8 +44,10 @@
             this.einstellungenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.farbeneinstellungToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testButtonToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pStundenplan = new System.Windows.Forms.Panel();
             this.pStundeÄndern.SuspendLayout();
             this.menuStrip1.SuspendLayout();
+            this.pStundenplan.SuspendLayout();
             this.SuspendLayout();
             // 
             // cbFach
@@ -79,7 +81,7 @@
             this.pStundeÄndern.Controls.Add(this.cbFach);
             this.pStundeÄndern.Controls.Add(this.cbRaum);
             this.pStundeÄndern.Controls.Add(this.cbLehrer);
-            this.pStundeÄndern.Location = new System.Drawing.Point(34, 198);
+            this.pStundeÄndern.Location = new System.Drawing.Point(0, 0);
             this.pStundeÄndern.Name = "pStundeÄndern";
             this.pStundeÄndern.Size = new System.Drawing.Size(121, 63);
             this.pStundeÄndern.TabIndex = 7;
@@ -182,14 +184,27 @@
             this.testButtonToolStripMenuItem.Text = "Test-Button";
             this.testButtonToolStripMenuItem.Click += new System.EventHandler(this.testButtonToolStripMenuItem_Click);
             // 
+            // pStundenplan
+            // 
+            this.pStundenplan.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.pStundenplan.Controls.Add(this.pStundeÄndern);
+            this.pStundenplan.Location = new System.Drawing.Point(0, 25);
+            this.pStundenplan.Name = "pStundenplan";
+            this.pStundenplan.Size = new System.Drawing.Size(731, 342);
+            this.pStundenplan.TabIndex = 11;
+            this.pStundenplan.DoubleClick += new System.EventHandler(this.pStundenplan_DoubleClick);
+            this.pStundenplan.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pStundenplan_MouseMove);
+            // 
             // fStundenplanersteller
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(743, 379);
+            this.Controls.Add(this.pStundenplan);
             this.Controls.Add(this.menuStrip1);
-            this.Controls.Add(this.pStundeÄndern);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "fStundenplanersteller";
             this.Text = "Stundenplanersteller";
@@ -199,6 +214,7 @@
             this.pStundeÄndern.ResumeLayout(false);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.pStundenplan.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -222,5 +238,6 @@
         private System.Windows.Forms.ToolStripMenuItem einstellungenToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem farbeneinstellungToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem testButtonToolStripMenuItem;
+        private System.Windows.Forms.Panel pStundenplan;
     }
 }
