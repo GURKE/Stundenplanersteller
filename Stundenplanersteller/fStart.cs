@@ -263,7 +263,9 @@ namespace WindowsFormsApplication1
 
         private void bStundenplanLaden_Click(object sender, EventArgs e)
         {
+            this.Hide();
             fStundenplanersteller fs = new fStundenplanersteller(null, true);
+            fs.Show();
         }
     }
 }
